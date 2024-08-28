@@ -19,7 +19,7 @@ export default function AddCompanyForm() {
     location: '',
   })
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prevState => ({
       ...prevState,
@@ -27,7 +27,7 @@ export default function AddCompanyForm() {
     }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
       await addDoc(collection(db, 'companies'), formData)

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getAllStartups, updateStartupRating } from '@/lib/db';
 import { IStartup } from '@/lib/types';
 import Rating from '@/components/Rating';
 import { toast } from '@/components/ui/use-toast';
 
-export default function StartupsPage() {
+function StartupsContent() {
   const [startups, setStartups] = useState<IStartup[]>([]);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -91,5 +91,13 @@ export default function StartupsPage() {
         ))}
       </ul>
     </div>
+  );
+}
+
+export default function StartupsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <StartupsContent />
+    </Suspense>
   );
 }

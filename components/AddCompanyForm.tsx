@@ -29,9 +29,9 @@ function getBaseData() {
     websiteUrl: '',
     jobListings: [],
     hqAddress: '',
-    approved: false,
     rating: 0,
     numberOfRatings: 0,
+    approved: false,
   };
 }
 
@@ -58,9 +58,23 @@ function AddCompanyFormContent() {
     
     try {
       const token = await executeRecaptcha('submit_form');
-      // Here you would typically send the token to your backend for verification
-      console.log('reCAPTCHA token:', token);
       
+      // Verify the reCAPTCHA token
+      const verifyResponse = await fetch('/api/verify-recaptcha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyData.success) {
+        throw new Error('reCAPTCHA verification failed');
+      }
+
+      // If verification is successful, proceed with form submission
       const startupData = {
         ...formData,
         websiteUrl: formData.website,
@@ -247,11 +261,6 @@ function AddCompanyFormContent() {
             <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white" disabled={isUploading}>
               Submit
             </Button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              This site is protected by reCAPTCHA and the Google
-              <a href="https://policies.google.com/privacy" className="text-blue-500 hover:underline"> Privacy Policy</a> and
-              <a href="https://policies.google.com/terms" className="text-blue-500 hover:underline"> Terms of Service</a> apply.
-            </p>
           </form>
         </CardContent>
       </Card>

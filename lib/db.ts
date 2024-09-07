@@ -128,3 +128,55 @@ export const updateStartupRating = async (id: string, newRating: number): Promis
     throw error;
   }
 };
+
+// Function to get search suggestions
+export async function getSearchSuggestions(searchQuery: string): Promise<IStartup[]> {
+  const startups = collection(db, 'startups').withConverter(startupConverter);
+  const lowercaseQuery = searchQuery.toLowerCase();
+
+  const locationQuery = query(
+    startups,
+    where('locationLowercase', '>=', lowercaseQuery),
+    where('locationLowercase', '<=', lowercaseQuery + '\uf8ff'),
+    limit(5)
+  );
+
+  const nameQuery = query(
+    startups,
+    where('nameLowercase', '>=', lowercaseQuery),
+    where('nameLowercase', '<=', lowercaseQuery + '\uf8ff'),
+    limit(5)
+  );
+
+  const [locationResults, nameResults] = await Promise.all([
+    getDocs(locationQuery),
+    getDocs(nameQuery)
+  ]);
+
+  const suggestions: IStartup[] = [];
+
+  const addSuggestion = (doc: any) => {
+    const startup = { id: doc.id, ...doc.data() } as IStartup;
+    if (!suggestions.some(s => s.id === startup.id)) {
+      suggestions.push(startup);
+    }
+  };
+
+  locationResults.forEach(addSuggestion);
+  nameResults.forEach(addSuggestion);
+
+  // If no exact matches, perform a more lenient search
+  if (suggestions.length === 0) {
+    const allStartups = await getDocs(startups);
+    allStartups.forEach(doc => {
+      const startup = { id: doc.id, ...doc.data() } as IStartup;
+      if (['location', 'name', 'description'].some(field => 
+          startup[field as keyof IStartup]?.toString().toLowerCase().includes(lowercaseQuery)
+      )) {
+        suggestions.push(startup);
+      }
+    });
+  }
+
+  return suggestions.slice(0, 5);
+}

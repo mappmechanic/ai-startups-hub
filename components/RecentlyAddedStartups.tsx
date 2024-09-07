@@ -65,7 +65,9 @@ export default function RecentStartups() {
                             <p className="text-gray-700">
                                 {truncateDescription(startup.description, 150)}
                             </p>
-                            <Button variant="outline" className="mt-4 w-full">Learn More</Button>
+                            <Link href={`/startup/${startup.id}`}>
+                                <Button variant="outline" className="mt-4 w-full">Learn More</Button>
+                            </Link>
                         </CardContent>
                     </Card>
                 ))}
